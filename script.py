@@ -35,10 +35,9 @@ for model in structure:
             model.detach_child(chain.id)
 
 
-
+# get coordinates of atoms for calculation of distance between atoms
 for model in structure:
    for chain in model:
       for residue in chain:
-         for residue2 in chain:
-            distance = residue['CA'] - residue2['CA']
-            print "distance is :" + distance
+         for atom in residue:
+               print atom.get_vector(), atom.name
