@@ -547,11 +547,21 @@ res = atoms[1].get_parent().get_resname()
 
 types = ['N', 'CA', 'C', 'O' , 'GCA', 'CB' , 'KN', 'KC' , 'DO' , 'RNH' , 'NN', 'RNE', 'SO' , 'HN', 'YC' , 'FC' , 'LC', 'CS']
 
-sum = 0 
+sum = 0
+num_atoms_of_type = [0] * 18
+num_of_surr_atoms_of_type = [0] * 18
+
+print num_atoms_of_type 
 for atom1 in atoms:
 	atom_type1 = get_atom_type(atom1.get_name(),atom1.get_parent().get_resname())
 	if atom_type1 in types:
 		index1 = types.index(atom_type1)
+		num_atoms_of_type[types.index(atom_type1)] = num_atoms_of_type[types.index(atom_type1)] + 1
+		for atom3 in atoms:
+			distance2 = atom1 - atom3
+			if ( distance2 <= 6):
+				num_of_surr_atoms_of_type[types.index(atom_type1)] = num_of_surr_atoms_of_type[types.index(atom_type1)]+1
+			
 	if (get_atom_type(atom1.get_name(),atom1.get_parent().get_resname()) not in types):
 		print get_atom_type(atom1.get_name(),atom1.get_parent().get_resname())
 	#print get_atom_type(atom1.get_name(),atom1.get_parent().get_resname())
@@ -573,6 +583,8 @@ for atom1 in atoms:
    					else:
    						sum += Matrix[index2][index1]
          #print atom1, atom2.get_parent()
-print sum
-print len(atoms)         
-print len(a)
+print "types : " , len(types)
+print "num_atoms_of_type : ", len(num_atoms_of_type)
+print "num_of_surr_atoms_of_type : ", len(num_of_surr_atoms_of_type)
+print "energy: ", sum
+print "number of atoms : ", len(atoms)
