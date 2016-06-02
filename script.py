@@ -1,6 +1,7 @@
 import math
 import numpy as np
-
+from os import listdir
+from os.path import isfile, join
 
 
 def class_by_atomname(atomname):
@@ -27,7 +28,7 @@ def get_atom_type(atom,aa):
 	if( atom == 'CB'):
 		if (aa== 'SER'):
 			return 'SO'
-		else:	
+		else:
 			return 'CB'
 	if (atom == 'CG'):
 		if (aa == 'PRO'):
@@ -67,8 +68,8 @@ def get_atom_type(atom,aa):
 		if(aa == 'PHE'):
 			return 'FC'
 		if (aa == 'TRP' or aa == 'TYR'):
-			return 'FC'	
-		if (aa == 'LEU'):
+			return 'FC'
+		if (aa == 'LEU' or 'ILE'):
 			return 'LC'
 		if (aa == 'HIS'):
 			return 'HN'
@@ -118,7 +119,7 @@ def get_atom_type(atom,aa):
 			return 'NN'
 	if (atom == 'ND1'):
 		if(aa == 'HIS'):
-			return 'HN'	
+			return 'HN'
 	if (atom == 'NE'):
 		if(aa=='ARG'):
 			return 'RNE'
@@ -163,8 +164,8 @@ def get_atom_type(atom,aa):
 	if (atom == 'SG'):
 		if (aa == 'CYS'):
 			return 'CS'
-	return 'rest', atom , aa	
-	
+	return 'rest', atom , aa
+
 w, h = 18, 18
 Matrix = [[0 for x in range(w)] for y in range(h)]
 Matrix[0][0] = -0.724
@@ -517,74 +518,79 @@ Con[3][3] = 2
 print Con[1][2]
 print "Con matrix" , Con
 
+
+amino_acids = ['ALA','ARG','ASN','ASP','CYS','GLU','GLN','GLY','HIS','ILE','LEU', 'LYS','MET', 'PHE', 'PRO', 'SER', 'THR', 'TRP', 'TYR', 'VAL']
+
+types = ['N', 'CA', 'C', 'O' , 'GCA', 'CB' , 'KN', 'KC' , 'DO' , 'RNH' , 'NN', 'RNE', 'SO' , 'HN', 'YC' , 'FC' , 'LC', 'CS']
+
 from Bio.PDB.PDBParser import PDBParser
 
 parser = PDBParser()
 
-structure = parser.get_structure('155l', '155l.pdb')
-header = parser.get_header()
-trailer = parser.get_trailer()
 
+blaber_files = [f for f in listdir('blaber_pdbs/') if isfile(join('blaber_pdbs/', f))]
 
-# remove hydrogen according to  : http://pelican.rsvs.ulaval.ca/mediawiki/index.php/Manipulating_PDB_files_using_BioPython
-for model in structure:
-    for chain in model:
-        for residue in chain:
-            id = residue.id
-            if id[0] == 'W':
-               chain.detach_child(id)
-        if len(chain) == 0:
-            model.detach_child(chain.id)
+if (blaber_files[0] == '.DS_Store'):
+	blaber_files.pop(0)
+print blaber_files
 
+for blaber_pdb_filename in blaber_files:
+	structure = parser.get_structure(blaber_pdb_filename.split('.')[0], 'blaber_pdbs/' +blaber_pdb_filename )
+	header = parser.get_header()
+	trailer = parser.get_trailer()
+	aa_atoms = []
+
+	for atom4 in list(structure.get_atoms()):
+   		if (atom4.get_parent().get_resname() in amino_acids):
+   			aa_atoms.append(atom4)
 
 # get coordinates of atoms for calculation of distance between atoms
-a = []
-atoms = list(structure.get_atoms())
+	a = []
+	atoms = list(structure.get_atoms())
 
-at  = atoms[1].get_name()
-res = atoms[1].get_parent().get_resname()
+	at  = atoms[1].get_name()
+	res = atoms[1].get_parent().get_resname()
 
 
-types = ['N', 'CA', 'C', 'O' , 'GCA', 'CB' , 'KN', 'KC' , 'DO' , 'RNH' , 'NN', 'RNE', 'SO' , 'HN', 'YC' , 'FC' , 'LC', 'CS']
 
-sum = 0
-num_atoms_of_type = [0] * 18
-num_of_surr_atoms_of_type = [0] * 18
+	sum = 0
+	num_atoms_of_type = [0] * 18
+	num_of_surr_atoms_of_type = [0] * 18
 
-print num_atoms_of_type 
-for atom1 in atoms:
-	atom_type1 = get_atom_type(atom1.get_name(),atom1.get_parent().get_resname())
-	if atom_type1 in types:
-		index1 = types.index(atom_type1)
-		num_atoms_of_type[types.index(atom_type1)] = num_atoms_of_type[types.index(atom_type1)] + 1
-		for atom3 in atoms:
-			distance2 = atom1 - atom3
-			if ( distance2 <= 6):
-				num_of_surr_atoms_of_type[types.index(atom_type1)] = num_of_surr_atoms_of_type[types.index(atom_type1)]+1
-			
-	if (get_atom_type(atom1.get_name(),atom1.get_parent().get_resname()) not in types):
-		print get_atom_type(atom1.get_name(),atom1.get_parent().get_resname())
+	print num_atoms_of_type
+	for atom1 in aa_atoms:
+		atom_type1 = get_atom_type(atom1.get_name(),atom1.get_parent().get_resname())
+		if atom_type1 in types:
+			index1 = types.index(atom_type1)
+			num_atoms_of_type[types.index(atom_type1)] = num_atoms_of_type[types.index(atom_type1)] + 1
+			for atom3 in aa_atoms:
+				distance2 = atom1 - atom3
+				if ( distance2 <= 6):
+					num_of_surr_atoms_of_type[types.index(atom_type1)] = num_of_surr_atoms_of_type[types.index(atom_type1)]+1
+
+		if (get_atom_type(atom1.get_name(),atom1.get_parent().get_resname()) not in types):
+			print get_atom_type(atom1.get_name(),atom1.get_parent().get_resname())
 	#print get_atom_type(atom1.get_name(),atom1.get_parent().get_resname())
-	k_i =  atom1.get_parent().get_id()[1]
-	for atom2 in atoms:
-		atom_type2 = get_atom_type(atom2.get_name(),atom2.get_parent().get_resname())
-		if atom_type2 in types:
-			index2 = types.index(atom_type2)
-   		k_j = atom2.get_parent().get_id()[1]
-   		distance = atom1 - atom2
-   		i = class_by_atomname(atom1.get_name())
-   		j = class_by_atomname(atom2.get_name())
-   		if(k_j < k_i):
-   			if ( k_i - k_j > Con[i][j]):
-   				if ( distance <= 6):
-   					atom1 - atom2
-   					if ( index1 < index2):
-   						sum += Matrix[index1][index2] 
-   					else:
-   						sum += Matrix[index2][index1]
+		k_i =  atom1.get_parent().get_id()[1]
+		for atom2 in aa_atoms:
+			atom_type2 = get_atom_type(atom2.get_name(),atom2.get_parent().get_resname())
+			if atom_type2 in types:
+				index2 = types.index(atom_type2)
+   			k_j = atom2.get_parent().get_id()[1]
+   			distance = atom1 - atom2
+   			i = class_by_atomname(atom1.get_name())
+   			j = class_by_atomname(atom2.get_name())
+   			if(k_j < k_i):
+   				if ( k_i - k_j > Con[i][j]):
+   					if ( distance <= 6):
+   						atom1 - atom2
+   						if ( index1 < index2):
+   							sum += Matrix[index1][index2]
+   						else:
+   							sum += Matrix[index2][index1]
          #print atom1, atom2.get_parent()
-print "types : " , len(types)
-print "num_atoms_of_type : ", len(num_atoms_of_type)
-print "num_of_surr_atoms_of_type : ", len(num_of_surr_atoms_of_type)
-print "energy: ", sum
-print "number of atoms : ", len(atoms)
+	print "types : " , types
+	print "num_atoms_of_type : ", num_atoms_of_type
+	print "num_of_surr_atoms_of_type : ", num_of_surr_atoms_of_type
+	print "energy: ", sum
+	print "number of atoms : ", len(atoms)
