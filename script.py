@@ -4,6 +4,19 @@ from os import listdir
 from os.path import isfile, join
 
 
+import numpy as np
+import matplotlib.pyplot as plt
+
+
+#N = 50
+#x = np.random.rand(N)
+#y = np.random.rand(N)
+#colors = np.random.rand(N)
+#area = np.pi * (15 * np.random.rand(N))**2  # 0 to 15 point radiuses
+
+
+
+
 def class_by_atomname(atomname):
    if (atomname == 'N'):
       return 0
@@ -523,9 +536,20 @@ amino_acids = ['ALA','ARG','ASN','ASP','CYS','GLU','GLN','GLY','HIS','ILE','LEU'
 
 types = ['N', 'CA', 'C', 'O' , 'GCA', 'CB' , 'KN', 'KC' , 'DO' , 'RNH' , 'NN', 'RNE', 'SO' , 'HN', 'YC' , 'FC' , 'LC', 'CS']
 
+mutant_temp = {'155l' : 54.49, '156l':51.13, '157l':54.84, '158l':55.02, '159l':51.14, '160l':51.07, '161l':52.14, '162l':50.94, '163l':51.01, '164l':51.12, '165l':55.29, '166l':51.22}
+
+x = []
+y = []
+
+print mutant_temp
+
 from Bio.PDB.PDBParser import PDBParser
 
 parser = PDBParser()
+
+
+def get_temp(file):
+	return mutant_temp[file.split('.')[0]]
 
 
 blaber_files = [f for f in listdir('blaber_pdbs/') if isfile(join('blaber_pdbs/', f))]
@@ -539,7 +563,10 @@ for blaber_pdb_filename in blaber_files:
 	header = parser.get_header()
 	trailer = parser.get_trailer()
 	aa_atoms = []
-
+	
+	x.append(get_temp(blaber_pdb_filename))
+	print x
+	
 	for atom4 in list(structure.get_atoms()):
    		if (atom4.get_parent().get_resname() in amino_acids):
    			aa_atoms.append(atom4)
@@ -551,14 +578,14 @@ for blaber_pdb_filename in blaber_files:
 	at  = atoms[1].get_name()
 	res = atoms[1].get_parent().get_resname()
 
-
-
 	sum = 0
 	num_atoms_of_type = [0] * 18
 	num_of_surr_atoms_of_type = [0] * 18
-
+	equals = 0
 	print num_atoms_of_type
 	for atom1 in aa_atoms:
+		if (aa_atoms.index(atom1) > 3):
+			break
 		atom_type1 = get_atom_type(atom1.get_name(),atom1.get_parent().get_resname())
 		if atom_type1 in types:
 			index1 = types.index(atom_type1)
@@ -572,25 +599,67 @@ for blaber_pdb_filename in blaber_files:
 			print get_atom_type(atom1.get_name(),atom1.get_parent().get_resname())
 	#print get_atom_type(atom1.get_name(),atom1.get_parent().get_resname())
 		k_i =  atom1.get_parent().get_id()[1]
+		sumlist = []
 		for atom2 in aa_atoms:
+			#print aa_atoms.index(atom2)
+			if(aa_atoms.index(atom2) < aa_atoms.index(atom1) ):
+				continue
+			if (atom1 - atom2 <= 0.1) :
+				#print "equals"
+				equals = equals + 1
+				continue
 			atom_type2 = get_atom_type(atom2.get_name(),atom2.get_parent().get_resname())
+			
+			
 			if atom_type2 in types:
 				index2 = types.index(atom_type2)
    			k_j = atom2.get_parent().get_id()[1]
    			distance = atom1 - atom2
    			i = class_by_atomname(atom1.get_name())
    			j = class_by_atomname(atom2.get_name())
-   			if(k_j < k_i):
-   				if ( k_i - k_j > Con[i][j]):
-   					if ( distance <= 6):
-   						atom1 - atom2
-   						if ( index1 < index2):
-   							sum += Matrix[index1][index2]
-   						else:
-   							sum += Matrix[index2][index1]
+   			if(k_j >= k_i):
+   					if not ( k_j - k_i <= Con[i][j]):
+   						if ( distance <= 6):
+   							if ( index1 < index2):
+   								#print "==================="
+   							   	#print "distance is ", distance  									
+   								#print "atom2 type is : ", atom_type2
+   								#print "atom1 type is : ", atom_type1
+   								#print "k_j is : ", k_j
+   								#print "k_i is : ", k_i
+   								#print "i is : ", i
+   								#print "j is : ", j
+   								#print "Con[i][j] is : ", Con[i][j]
+   								#print "Matrix value is : ",  Matrix[index1][index2]
+								sumlist.append(Matrix[index1][index2])
+   								sum += Matrix[index1][index2]
+   							else:
+   							   	#print "*********************"
+   							   	#print "distance is ", distance  									
+   								#print "atom2 type is : ", atom_type2
+   								#print "atom1 type is : ", atom_type1
+   								#print "k_j is : ", k_j
+   								#print "k_i is : ", k_i
+   								#print "i is : ", i
+   								#print "j is : ", j
+   								#print "Con[i][j] is : ", Con[i][j]
+   								#print "Matrix value is : ",  Matrix[index2][index1]
+   								sumlist.append(Matrix[index2][index1])
+   								sum += Matrix[index2][index1]
+			print atom1
+			print sumlist
+			#print aa_atoms.index(atom1)
+			#print aa_atoms.index(atom2)
+			#print sum
          #print atom1, atom2.get_parent()
+	print sumlist
 	print "types : " , types
 	print "num_atoms_of_type : ", num_atoms_of_type
 	print "num_of_surr_atoms_of_type : ", num_of_surr_atoms_of_type
 	print "energy: ", sum
-	print "number of atoms : ", len(atoms)
+	print "number of atoms : ", len(aa_atoms)
+	print equals
+	y.append(sum)
+
+plt.scatter(x, y)
+plt.show()
