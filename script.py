@@ -541,7 +541,7 @@ mutant_temp = {'155l' : 54.49, '156l':51.13, '157l':54.84, '158l':55.02, '159l':
 x = []
 y = []
 
-print mutant_temp
+#print mutant_temp
 
 from Bio.PDB.PDBParser import PDBParser
 
@@ -563,10 +563,10 @@ for blaber_pdb_filename in blaber_files:
 	header = parser.get_header()
 	trailer = parser.get_trailer()
 	aa_atoms = []
-	
+
 	x.append(get_temp(blaber_pdb_filename))
-	print x
-	
+	#print x
+
 	for atom4 in list(structure.get_atoms()):
    		if (atom4.get_parent().get_resname() in amino_acids):
    			aa_atoms.append(atom4)
@@ -578,22 +578,22 @@ for blaber_pdb_filename in blaber_files:
 	at  = atoms[1].get_name()
 	res = atoms[1].get_parent().get_resname()
 
-	sum = 0
+	summe = 0
 	num_atoms_of_type = [0] * 18
 	num_of_surr_atoms_of_type = [0] * 18
 	equals = 0
-	print num_atoms_of_type
+	#print num_atoms_of_type
 	for atom1 in aa_atoms:
-		if (aa_atoms.index(atom1) > 3):
-			break
+		#if (aa_atoms.index(atom1) > 3):
+		#	break
 		atom_type1 = get_atom_type(atom1.get_name(),atom1.get_parent().get_resname())
 		if atom_type1 in types:
 			index1 = types.index(atom_type1)
-			num_atoms_of_type[types.index(atom_type1)] = num_atoms_of_type[types.index(atom_type1)] + 1
-			for atom3 in aa_atoms:
-				distance2 = atom1 - atom3
-				if ( distance2 <= 6):
-					num_of_surr_atoms_of_type[types.index(atom_type1)] = num_of_surr_atoms_of_type[types.index(atom_type1)]+1
+#			num_atoms_of_type[types.index(atom_type1)] = num_atoms_of_type[types.index(atom_type1)] + 1
+			#for atom3 in aa_atoms:
+			#	distance2 = atom1 - atom3
+			#	if ( distance2 <= 6):
+			#		num_of_surr_atoms_of_type[types.index(atom_type1)] = num_of_surr_atoms_of_type[types.index(atom_type1)]+1
 
 		if (get_atom_type(atom1.get_name(),atom1.get_parent().get_resname()) not in types):
 			print get_atom_type(atom1.get_name(),atom1.get_parent().get_resname())
@@ -609,20 +609,18 @@ for blaber_pdb_filename in blaber_files:
 				equals = equals + 1
 				continue
 			atom_type2 = get_atom_type(atom2.get_name(),atom2.get_parent().get_resname())
-			
-			
 			if atom_type2 in types:
 				index2 = types.index(atom_type2)
-   			k_j = atom2.get_parent().get_id()[1]
-   			distance = atom1 - atom2
-   			i = class_by_atomname(atom1.get_name())
-   			j = class_by_atomname(atom2.get_name())
-   			if(k_j >= k_i):
+			k_j = atom2.get_parent().get_id()[1]
+			distance = atom1 - atom2
+			i = class_by_atomname(atom1.get_name())
+			j = class_by_atomname(atom2.get_name())
+			if(k_j >= k_i):
    					if not ( k_j - k_i <= Con[i][j]):
    						if ( distance <= 6):
    							if ( index1 < index2):
    								#print "==================="
-   							   	#print "distance is ", distance  									
+   							   	#print "distance is ", distance
    								#print "atom2 type is : ", atom_type2
    								#print "atom1 type is : ", atom_type1
    								#print "k_j is : ", k_j
@@ -631,11 +629,11 @@ for blaber_pdb_filename in blaber_files:
    								#print "j is : ", j
    								#print "Con[i][j] is : ", Con[i][j]
    								#print "Matrix value is : ",  Matrix[index1][index2]
-								sumlist.append(Matrix[index1][index2])
-   								sum += Matrix[index1][index2]
+								#sumlist.append(Matrix[index1][index2])
+   								summe += Matrix[index1][index2]
    							else:
    							   	#print "*********************"
-   							   	#print "distance is ", distance  									
+   							   	#print "distance is ", distance
    								#print "atom2 type is : ", atom_type2
    								#print "atom1 type is : ", atom_type1
    								#print "k_j is : ", k_j
@@ -644,22 +642,22 @@ for blaber_pdb_filename in blaber_files:
    								#print "j is : ", j
    								#print "Con[i][j] is : ", Con[i][j]
    								#print "Matrix value is : ",  Matrix[index2][index1]
-   								sumlist.append(Matrix[index2][index1])
-   								sum += Matrix[index2][index1]
-			print atom1
-			print sumlist
+   								#sumlist.append(Matrix[index2][index1])
+   								summe += Matrix[index2][index1]
+			#print atom1
+			#print sumlist
 			#print aa_atoms.index(atom1)
 			#print aa_atoms.index(atom2)
 			#print sum
          #print atom1, atom2.get_parent()
-	print sumlist
-	print "types : " , types
-	print "num_atoms_of_type : ", num_atoms_of_type
-	print "num_of_surr_atoms_of_type : ", num_of_surr_atoms_of_type
-	print "energy: ", sum
-	print "number of atoms : ", len(aa_atoms)
-	print equals
-	y.append(sum)
+	#print sumlist
+	#print "types : " , types
+	#print "num_atoms_of_type : ", num_atoms_of_type
+	#print "num_of_surr_atoms_of_type : ", num_of_surr_atoms_of_type
+	print "energy: ", summe / 21
+	#print "number of atoms : ", len(aa_atoms)
+	#print equals
+	y.append(summe/21)
 
 plt.scatter(x, y)
 plt.show()
